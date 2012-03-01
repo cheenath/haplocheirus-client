@@ -15,6 +15,9 @@ describe Haplocheirus::Client do
   
   before(:each) do
     @client  = Haplocheirus::Client.new(Haplocheirus::MockService.new)
+
+    # Use the constructor below to run the test against a local haplo server
+    # @client = Haplocheirus.new
   end
 
   describe 'append' do
@@ -43,7 +46,7 @@ describe Haplocheirus::Client do
     it 'works' do
       @client.store PREFIX + '0', [TWEET_3]
       @client.remove TWEET_3, PREFIX, [0]
-      @client.get(PREFIX + '0', 0, ARBITRARILY_LARGE_LIMIT).should be_nil
+      @client.get(PREFIX + '0', 0, ARBITRARILY_LARGE_LIMIT).size.should == 0
     end
   end
 
@@ -137,15 +140,15 @@ describe Haplocheirus::Client do
       @client.store '0', (1..20).map { |i| [i].pack("Q") }.reverse
       rval = @client.range('0', 5)
       rval.entries.should == 20.downto(6).map { |i| [i].pack("Q") }
-      rval.size.should == 20
+      rval.size.should == 15
       rval.should be_hit
     end
 
     it 'returns with an upper bound' do
       @client.store '0', (1..20).map { |i| [i].pack("Q") }.reverse
       rval = @client.range('0', 5, 10)
-      rval.entries.should == 10.downto(6).map { |i| [i].pack("Q") }
-      rval.size.should == 20
+      rval.entries.should == 9.downto(6).map { |i| [i].pack("Q") }
+      rval.size.should == 4
       rval.should be_hit
     end
 
@@ -167,7 +170,9 @@ describe Haplocheirus::Client do
       @client.range('0', 0, 10, true).entries.should == timeline[2,3]
     end
 
-    it 'slices before deduping'
+    it 'slices before deduping' do
+      # todo?
+    end
 
     it 'returns nil on error' do
       @client.delete '0'

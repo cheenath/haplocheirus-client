@@ -43,7 +43,8 @@ class Haplocheirus::MockService #:nodoc:
       key = p + i.to_s
       next unless @timelines.key?(key)
       @timelines[key].reject! { |i| i == e }
-      @timelines.delete(key) if @timelines[key].empty?
+      # Haplo no longer delets an empty timeline from cache
+      # @timelines.delete(key) if @timelines[key].empty?
     end
   end
 
@@ -73,11 +74,12 @@ class Haplocheirus::MockService #:nodoc:
     raise Haplocheirus::TimelineStoreException unless @timelines.key?(i)
     min = @timelines[i].index([f].pack("Q"))
     max = t > 0 ? @timelines[i].index([t].pack("Q")) : 0
+    max = (max && max != 0) ? max+1 : 0
     t = min ? @timelines[i][max..min-1] : @timelines[i]
     t.sort! { |a, b| a[0,8].unpack("Q") <=> b[0,8].unpack("Q") }
     t = dedupe(t) if d
     Haplocheirus::TimelineSegment.new(:entries => t.reverse,
-                                      :size => @timelines[i].length,
+                                      :size => t.length,
                                       :state => Haplocheirus::TimelineSegmentState::HIT)
   end
 
